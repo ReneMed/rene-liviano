@@ -140,11 +140,11 @@ export function EstudiosOrdenesSection({
           </div>
         )}
       </div>
-      <div className="pt-3 mt-3 border-t border-gray-200 shrink-0">
+      <div className="pt-3 mt-3 border-t border-rene-aquaDark/40 shrink-0">
         <button
           onClick={handleWhatsApp}
           disabled={selectedCount === 0}
-          className="w-full py-2 px-4 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-2.5 px-4 text-sm font-medium bg-rene-green text-white rounded-lg hover:bg-rene-greenDark disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <span>Enviar por WhatsApp</span>
           {selectedCount > 0 && (
@@ -178,27 +178,25 @@ function OrderRow({
   return (
     <li
       onClick={onClick}
-      className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer border border-transparent hover:border-gray-200 transition"
+      className="flex items-start gap-3 p-3 rounded-lg hover:bg-rene-aqua/50 cursor-pointer border border-transparent hover:border-rene-aquaDark/40 transition"
     >
-      <span className="flex-1 min-w-0 text-sm truncate">
-        <span className="text-gray-500">{item.typeLabel}:</span> {item.label}
+      <span className="flex-1 min-w-0 text-sm">
+        <span className="font-medium text-gray-600">{item.typeLabel}:</span>{" "}
+        <span className="text-gray-800">{item.label}</span>
       </span>
       <button
         onClick={(e) => {
           e.stopPropagation();
           onToggle();
         }}
-        className={`shrink-0 w-10 h-6 rounded-full transition ${
-          selected ? "bg-blue-600" : "bg-gray-300"
+        className={`shrink-0 mt-0.5 w-11 h-6 rounded-full transition flex items-center ${
+          selected ? "bg-rene-green justify-end" : "bg-rene-aquaDark/50 justify-start"
         }`}
         role="switch"
         aria-checked={selected}
+        aria-label={selected ? "Desmarcar para excluir del envío" : "Marcar para incluir en el envío"}
       >
-        <span
-          className={`block w-4 h-4 bg-white rounded-full shadow-sm transform transition ${
-            selected ? "translate-x-5" : "translate-x-1"
-          }`}
-        />
+        <span className="block w-5 h-5 bg-white rounded-full shadow-sm mx-0.5" />
       </button>
     </li>
   );

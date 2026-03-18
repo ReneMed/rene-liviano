@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { VisitList } from "./VisitList";
+import Link from "next/link";
 import { VisitDetail } from "./VisitDetail";
 import { useConsultationStore } from "@/shared/store/useConsultationStore";
 
@@ -10,60 +10,39 @@ interface ProfessionalDashboardProps {
 }
 
 export function ProfessionalDashboard({ initialVisitId }: ProfessionalDashboardProps) {
-  const { visits, setVisits, selectedVisit, setSelectedVisit } = useConsultationStore();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/visits")
-      .then((r) => r.json())
-      .then((data) => {
-        setVisits(Array.isArray(data) ? data : []);
-      })
-      .catch(() => setVisits([]))
-      .finally(() => setLoading(false));
-  }, [setVisits]);
+  const { selectedVisit, setSelectedVisit } = useConsultationStore();
+  const [loading, setLoading] = useState(!!initialVisitId);
 
   useEffect(() => {
     if (initialVisitId && !selectedVisit) {
+      setLoading(true);
       fetch(`/api/visits/${initialVisitId}`)
         .then((r) => r.json())
         .then(setSelectedVisit)
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, [initialVisitId, selectedVisit, setSelectedVisit]);
 
-  const handleSelectVisit = (id: string) => {
-    fetch(`/api/visits/${id}`)
-      .then((r) => r.json())
-      .then(setSelectedVisit)
-      .catch(() => {});
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <aside className="w-80 border-r border-gray-200 bg-white flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h1 className="font-semibold text-lg">Escriba Médico</h1>
-          <a href="/" className="text-sm text-blue-600 hover:underline block mb-1">
-            Nueva grabación
-          </a>
-          <a href="/api/auth/signout?callbackUrl=/login" className="text-sm text-gray-600 hover:underline">
-            Cerrar sesión
-          </a>
-        </div>
-        <VisitList
-          visits={visits}
-          selectedId={selectedVisit?.id}
-          onSelect={handleSelectVisit}
-          loading={loading}
-        />
-      </aside>
-      <main className="flex-1 overflow-auto">
+    <div className="min-h-full flex" style={{ backgroundColor: "#f0fdfa" }}>
+      <main className="flex-1 overflow-auto min-w-0">
         {selectedVisit ? (
           <VisitDetail visit={selectedVisit} onClose={() => setSelectedVisit(null)} />
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            {loading ? "Cargando…" : "Seleccioná una consulta"}
+          <div className="flex flex-col items-center justify-center h-full min-h-[320px] text-gray-500 gap-4">
+            {loading ? (
+              <p>Cargando…</p>
+            ) : (
+              <>
+                <p>No hay consulta seleccionada.</p>
+                <Link href="/" className="text-rene-green hover:underline font-medium">
+                  Ir a nueva grabación
+                </Link>
+              </>
+            )}
           </div>
         )}
       </main>

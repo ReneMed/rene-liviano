@@ -22,7 +22,7 @@ export default function Error({
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
-        backgroundColor: "#ffdab9",
+        backgroundColor: "#f0fdfa",
         fontFamily: "system-ui, sans-serif",
       }}
     >
@@ -35,7 +35,7 @@ export default function Error({
         onClick={reset}
         style={{
           padding: "0.5rem 1rem",
-          backgroundColor: "#2563eb",
+          backgroundColor: "#14b8a6",
           color: "white",
           border: "none",
           borderRadius: "0.5rem",

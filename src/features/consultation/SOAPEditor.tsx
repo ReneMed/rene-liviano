@@ -42,10 +42,10 @@ export function SOAPEditor({ soap, onChange, onSave }: SOAPEditorProps) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden flex flex-col">
+    <div className="bg-white border border-rene-aquaDark/40 rounded-lg overflow-hidden flex flex-col">
       <div className="overflow-visible">
         {BLOCKS.map(({ key, label }) => (
-          <div key={key} className="border-b border-gray-100 last:border-0">
+          <div key={key} className="border-b border-rene-aquaDark/20 last:border-0">
             <label className="block px-4 pt-3 text-sm font-medium text-gray-600">
               {label}
             </label>
@@ -58,17 +58,17 @@ export function SOAPEditor({ soap, onChange, onSave }: SOAPEditorProps) {
           </div>
         ))}
       </div>
-      <div className="flex gap-2 p-3 bg-gray-50 border-t border-gray-200 shrink-0">
+      <div className="flex gap-2 p-3 bg-rene-aqua/50 border-t border-rene-aquaDark/40 shrink-0">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="px-3 py-1.5 text-sm bg-rene-green text-white rounded-lg hover:bg-rene-greenDark disabled:opacity-50"
         >
           {saving ? "Guardando…" : "Guardar"}
         </button>
         <button
           onClick={handleCopy}
-          className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+          className="px-3 py-1.5 text-sm bg-rene-aquaDark/50 text-rene-greenDark rounded-lg hover:bg-rene-aquaDark"
         >
           Copiar
         </button>

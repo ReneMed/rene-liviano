@@ -103,10 +103,10 @@ export function RecorderScreen() {
 
   return (
     <div
-      className="min-h-screen bg-recorder-peach flex flex-col items-center justify-center p-6"
+      className="min-h-[calc(100vh-3.5rem)] bg-rene-aqua flex flex-col items-center justify-center p-6"
       style={{
-        minHeight: "100vh",
-        backgroundColor: "#ffdab9",
+        minHeight: "calc(100vh - 3.5rem)",
+        backgroundColor: "#f0fdfa",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -123,10 +123,10 @@ export function RecorderScreen() {
             ? "Grabando consulta"
             : state === "processing"
               ? "Procesando…"
-              : "Escriba Médico"}
+              : "Rene"}
         </h1>
 
-        <div className="w-full aspect-video max-h-32 bg-recorder-peachDark/50 rounded-xl flex items-center justify-center overflow-hidden">
+        <div className="w-full aspect-video max-h-32 bg-rene-aquaDark/50 rounded-xl flex items-center justify-center overflow-hidden">
           {state === "recording" && (
             <WaveformAnimation />
           )}
@@ -162,14 +162,14 @@ export function RecorderScreen() {
             fontWeight: 500,
             border: "none",
             cursor: state === "processing" ? "not-allowed" : "pointer",
-            backgroundColor: state === "recording" ? "#ef4444" : state === "processing" ? "#9ca3af" : "#2563eb",
+            backgroundColor: state === "recording" ? "#ef4444" : state === "processing" ? "#9ca3af" : "#14b8a6",
           }}
           className={`shadow-lg transition touch-manipulation ${
             state === "recording"
               ? "bg-red-500 hover:bg-red-600"
               : state === "processing"
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
+                : "bg-rene-green hover:bg-rene-greenDark"
           }`}
         >
           {state === "recording" ? (

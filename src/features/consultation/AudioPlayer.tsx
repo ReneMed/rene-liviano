@@ -21,7 +21,7 @@ export function AudioPlayer({ visitId }: AudioPlayerProps) {
 
   return (
     <div
-      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-2 min-w-0 max-w-[280px] shrink-0"
+      className="bg-rene-aqua/50 border border-rene-aquaDark/40 rounded-lg px-3 py-2 flex items-center gap-2 min-w-0 max-w-[280px] shrink-0"
       data-visit-id={visitId}
     >
       <span className="text-xs text-gray-500 shrink-0">Audio</span>

@@ -58,7 +58,7 @@ export function VisitDetail({ visit }: VisitDetailProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="flex items-center justify-between gap-4 p-4 border-b border-gray-200 bg-white shrink-0 flex-wrap sm:flex-nowrap">
+      <header className="flex items-center justify-between gap-4 p-4 border-b border-rene-aquaDark/60 bg-white shrink-0 flex-wrap sm:flex-nowrap">
         <div className="min-w-0">
           <h2 className="font-semibold text-lg">{visit.patient.name}</h2>
           <p className="text-sm text-gray-500">
@@ -70,16 +70,10 @@ export function VisitDetail({ visit }: VisitDetailProps) {
         <div className="flex gap-2 items-center shrink-0">
           <button
             onClick={handleCopyWhatsApp}
-            className="px-3 py-1.5 text-sm bg-green-100 text-green-800 rounded-lg hover:bg-green-200"
+            className="px-3 py-1.5 text-sm bg-rene-aquaDark/50 text-rene-greenDark rounded-lg hover:bg-rene-aquaDark"
           >
             Copiar para WhatsApp
           </button>
-          <a
-            href={`/linked-evidence?visitId=${visit.id}`}
-            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-          >
-            Evidencia enlazada
-          </a>
           {!signed && (
             <button
               onClick={handleSign}
@@ -90,7 +84,7 @@ export function VisitDetail({ visit }: VisitDetailProps) {
             </button>
           )}
           {signed && (
-            <span className="text-sm text-green-600 font-medium">Firmada</span>
+            <span className="text-sm text-rene-green font-medium">Firmada</span>
           )}
         </div>
       </header>
@@ -98,7 +92,6 @@ export function VisitDetail({ visit }: VisitDetailProps) {
       <div className="flex-1 overflow-hidden p-4">
         <div className="flex gap-4 min-h-0 flex-1 flex-col lg:flex-row" style={{ minHeight: "320px" }}>
           <div className="w-full lg:w-1/2 flex flex-col min-h-0">
-            <h3 className="font-medium mb-2 text-sm text-gray-600">Nota clínica</h3>
             <div className="flex-1 min-h-0">
               <NotesLeftPanel
                 soap={soap}

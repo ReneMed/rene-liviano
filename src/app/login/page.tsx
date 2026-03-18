@@ -43,7 +43,7 @@ export default function LoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#ffdab9",
+        backgroundColor: "#f0fdfa",
         padding: "1.5rem",
       }}
     >
@@ -66,7 +66,7 @@ export default function LoginPage() {
             textAlign: "center",
           }}
         >
-          Escriba Médico
+          Rene
         </h1>
         <p
           style={{
@@ -158,7 +158,7 @@ export default function LoginPage() {
             style={{
               width: "100%",
               padding: "0.5rem 1rem",
-              backgroundColor: "#2563eb",
+              backgroundColor: "#14b8a6",
               color: "white",
               border: "none",
               borderRadius: "0.5rem",
@@ -181,7 +181,7 @@ export default function LoginPage() {
           }}
         >
           ¿No tenés cuenta?{" "}
-          <a href="/registro" style={{ color: "#2563eb", fontWeight: 500 }}>
+          <a href="/registro" style={{ color: "#14b8a6", fontWeight: 500 }}>
             Registrate
           </a>
         </p>
