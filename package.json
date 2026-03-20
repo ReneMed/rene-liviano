@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "next dev",
     "dev:3002": "next dev -p 3002",
     "dev:clean": "npx rimraf .next && next dev",

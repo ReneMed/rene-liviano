@@ -8,14 +8,18 @@ export function mergeVisitDetailForProcessing<
     id: string;
     soap: unknown;
     transcript: unknown;
+    analysisReadings?: unknown;
   },
 >(incoming: T, current: T | null, processingActive: boolean): T {
   if (!processingActive || !current || current.id !== incoming.id) {
     return incoming;
   }
+  const mergedReadings =
+    incoming.analysisReadings != null ? incoming.analysisReadings : current.analysisReadings;
   return {
     ...incoming,
     soap: incoming.soap ?? current.soap,
     transcript: incoming.transcript ?? current.transcript,
+    analysisReadings: mergedReadings as T["analysisReadings"],
   };
 }

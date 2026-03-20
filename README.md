@@ -26,10 +26,17 @@ MVP de un escriba médico con IA para automatizar la documentación de consultas
 
 3. Ejecutar migraciones:
    ```bash
-   npx prisma migrate dev
+   npx prisma migrate deploy
    ```
+   (o `npx prisma migrate dev` en desarrollo.)
 
-4. Iniciar el proyecto:
+4. Tras cambios en `prisma/schema.prisma`, regenerar el cliente (también corre en `npm install` vía `postinstall`):
+   ```bash
+   npx prisma generate
+   ```
+   Si en Windows falla con **EPERM** al reemplazar `query_engine`, cerrá el servidor `npm run dev` y volvé a ejecutar `npx prisma generate`.
+
+5. Iniciar el proyecto:
    ```bash
    npm run dev
    ```

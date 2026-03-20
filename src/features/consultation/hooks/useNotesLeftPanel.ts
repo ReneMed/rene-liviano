@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ComplementaryAnalysisReadingEntry } from "@shared-types";
 
 export type NotesLeftTabId = "nota" | "transcripcion" | "evidencia" | "lectura_estudios";
 
@@ -8,7 +9,7 @@ export const NOTES_LEFT_TABS: Array<{ id: NotesLeftTabId; label: string }> = [
   { id: "nota", label: "Nota clínica" },
   { id: "transcripcion", label: "Transcripción de la consulta" },
   { id: "evidencia", label: "Evidencia enlazada" },
-  { id: "lectura_estudios", label: "Lectura de estudios" },
+  { id: "lectura_estudios", label: "Lectura de análisis" },
 ];
 
 interface SOAPNoteLike {
@@ -34,18 +35,22 @@ interface UseNotesLeftPanelOptions {
     }>;
   } | null;
   extractedStudies?: ExtractedStudyLike[];
+  analysisReadings?: ComplementaryAnalysisReadingEntry[];
 }
 
 export function useNotesLeftPanel({
   soap,
   transcript,
   extractedStudies = [],
+  analysisReadings = [],
 }: UseNotesLeftPanelOptions) {
   const [activeTab, setActiveTab] = useState<NotesLeftTabId>("nota");
 
   const hasTranscript = !!(transcript?.segments && transcript.segments.length > 0);
   const canShowEvidence = hasTranscript && Object.values(soap).some((v) => v?.trim());
+  const hasAnalysisReadings = analysisReadings.length > 0;
   const hasMedicalOrders = extractedStudies.length > 0;
+  const hasLecturaContent = hasAnalysisReadings || hasMedicalOrders;
 
   const studiesWithTypeLabel = useMemo(
     () =>
@@ -69,6 +74,8 @@ export function useNotesLeftPanel({
     hasTranscript,
     canShowEvidence,
     hasMedicalOrders,
+    hasAnalysisReadings,
+    hasLecturaContent,
     studiesWithTypeLabel,
   };
 }

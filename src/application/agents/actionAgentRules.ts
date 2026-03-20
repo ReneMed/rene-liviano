@@ -14,6 +14,7 @@ const NEGATIVE_PATTERNS = [
 
 const MIN_CONFIDENCE_AVG = 0.65;
 const MAX_LOW_CONFIDENCE_RATIO = 0.55;
+const MIN_STUDIES_CONTEXT_WORDS = 4;
 const MIN_DOCUMENT_CONTEXT_WORDS = 5;
 const MIN_FOLLOWUP_CONTEXT_WORDS = 4;
 
@@ -108,6 +109,23 @@ export function evaluateStudiesAgentRule(
 ): AgentActivationDecision {
   const text = buildRuleText(segments, soap, ["plan", "objective"]);
   const doctorText = buildMedicalSpeakerText(segments);
+  if (tooLowConfidence(segments)) {
+    return {
+      agentKey: "studies",
+      activated: false,
+      reason: "Bloqueado por baja confianza de transcripción",
+      source: "transcript_soap",
+    };
+  }
+  const contextWords = wordCount(`${soap.plan} ${soap.objective}`);
+  if (contextWords < MIN_STUDIES_CONTEXT_WORDS) {
+    return {
+      agentKey: "studies",
+      activated: false,
+      reason: "Bloqueado por contexto SOAP insuficiente",
+      source: "transcript_soap",
+    };
+  }
   return evaluateRule(
     `${text} ${doctorText}`,
     /(laboratorio|hemograma|perfil|ecografía|ecografia|radiografía|radiografia|tomografía|tomografia|rmn|resonancia|interconsulta|derivación|derivacion|orden)/i,

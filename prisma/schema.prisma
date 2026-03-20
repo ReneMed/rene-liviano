@@ -54,6 +54,19 @@ model Visit {
   referral    Referral?
   justification Justification?
   agentDecisions AgentDecision[]
+  complementaryAnalysisReadings ComplementaryAnalysisReading[]
+}
+
+/// Texto detallado incorporado desde análisis complementarios (pestaña Lectura de análisis).
+model ComplementaryAnalysisReading {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  visitId   String
+  visit     Visit    @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  title     String?
+  content   String
+
+  @@index([visitId])
 }
 
 model Transcript {

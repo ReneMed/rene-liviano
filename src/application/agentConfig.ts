@@ -28,5 +28,10 @@ export function getAgentConfig() {
       timeoutMs: parseEnvInt("AGENT_FOLLOWUPS_TIMEOUT_MS", 20_000),
       retries: parseEnvInt("AGENT_FOLLOWUPS_RETRIES", 1),
     },
+    /** Análisis de estudios complementarios cargados (MedGemma / OpenAI) — uso futuro desde API de adjuntos */
+    complementaryStudiesAnalysis: {
+      timeoutMs: parseEnvInt("AGENT_COMPLEMENTARY_STUDIES_TIMEOUT_MS", 60_000),
+      retries: parseEnvInt("AGENT_COMPLEMENTARY_STUDIES_RETRIES", 1),
+    },
   };
 }

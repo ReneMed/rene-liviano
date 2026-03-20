@@ -32,6 +32,10 @@ export async function POST(request: Request) {
       );
     }
 
+    const visitIdRaw = formData.get("visitId");
+    const existingVisitId =
+      typeof visitIdRaw === "string" && visitIdRaw.trim() ? visitIdRaw.trim() : undefined;
+
     const encoder = new TextEncoder();
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
@@ -51,7 +55,8 @@ export async function POST(request: Request) {
               selectedPatientId,
               (event) => {
                 send({ type: "progress", ...event });
-              }
+              },
+              existingVisitId ? { existingVisitId } : undefined
             );
             send({ type: "done", result });
           } catch (err) {

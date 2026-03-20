@@ -166,12 +166,87 @@ export interface ProcessProgressEvent {
   justification?: Justification;
 }
 
+export type AgentActivationSource = "transcript_soap" | "uploaded_materials";
+
 export interface AgentActivationDecision {
-  agentKey: "soap" | "medication" | "studies" | "documents" | "followups";
+  agentKey:
+    | "soap"
+    | "medication"
+    | "studies"
+    | "documents"
+    | "followups"
+    /** Análisis de estudios complementarios cargados (PDF/imagen), distinto de órdenes extraídas por voz */
+    | "complementary_studies_analysis";
   activated: boolean;
   reason: string;
   matchedPattern?: string;
-  source: "transcript_soap";
+  source: AgentActivationSource;
+}
+
+/** Motor de inferencia para análisis de material complementario (policy del producto) */
+export type ComplementaryStudyAnalysisEngine = "medgemma" | "openai";
+
+/** Clasificación clínica del archivo complementario */
+export type ComplementaryStudyKind =
+  | "laboratory"
+  | "cardiac"
+  | "dermatology_image"
+  | "general_medical_image"
+  | "unknown";
+
+/** Entrada mínima para clasificar y enrutar un estudio cargado por el médico */
+export interface UploadedComplementaryStudyInput {
+  id: string;
+  mimeType: string;
+  fileName?: string;
+  /** Texto extraído (OCR, capa de texto de PDF, etc.) */
+  textPreview?: string;
+  /** Contenido del archivo en base64 (sin prefijo data:). Imágenes: visión GPT; PDF: no se envía al modelo como imagen. */
+  fileBase64?: string;
+}
+
+/** Decisión determinística de tipo + motor (auditable) */
+export interface ComplementaryStudyRoutingDecision {
+  studyId: string;
+  kind: ComplementaryStudyKind;
+  engine: ComplementaryStudyAnalysisEngine;
+  reason: string;
+  matchedRule?: string;
+}
+
+/** Estado frente a rango de referencia (laboratorio) */
+export type ComplementaryLabValueStatus = "normal" | "bajo" | "elevado" | "indeterminado";
+
+export interface ComplementaryLabValueRow {
+  name: string;
+  value: string;
+  reference?: string;
+  status: ComplementaryLabValueStatus;
+}
+
+/** Resultado por ítem tras pasar por el adaptador del motor (placeholder hasta integrar APIs) */
+export interface ComplementaryStudyAnalysisItem {
+  studyId: string;
+  kind: ComplementaryStudyKind;
+  engine: ComplementaryStudyAnalysisEngine;
+  routingReason: string;
+  analysis: {
+    /** Texto continuo (compatibilidad); preferir summaryPoints en UI */
+    summary: string;
+    limitations: string;
+    structuredNotes?: Record<string, string>;
+    /** Viñetas cortas para lectura rápida (preferido) */
+    summaryPoints?: string[];
+    limitationsPoints?: string[];
+    /** Tabla de valores con estado (laboratorio) */
+    labValues?: ComplementaryLabValueRow[];
+    /** Breve texto: qué está alterado y posibles orientaciones (no diagnóstico) */
+    clinicalInterpretation?: string;
+  };
+}
+
+export interface ComplementaryStudiesAnalysisResult {
+  items: ComplementaryStudyAnalysisItem[];
 }
 
 // ProcessStreamEvent - contrato NDJSON del endpoint /api/visits/process
@@ -223,6 +298,14 @@ export interface VisitPatient {
   address?: string | null;
 }
 
+/** Lectura incorporada desde análisis complementarios (IA) — pestaña Lectura de análisis */
+export interface ComplementaryAnalysisReadingEntry {
+  id: string;
+  createdAt: string;
+  title?: string;
+  content: string;
+}
+
 // VisitDetail - contrato de detalle de consulta en frontend
 export interface VisitDetail {
   id: string;
@@ -230,6 +313,8 @@ export interface VisitDetail {
   soap: SOAPNote | null;
   transcript: { segments: TranscriptSegment[] } | null;
   extractedActions: ExtractedActions;
+  /** Textos detallados agregados desde el modal de estudios complementarios */
+  analysisReadings?: ComplementaryAnalysisReadingEntry[];
   agentAudit?: AgentActivationDecision[];
   patientSummary: string | null;
   referral?: Referral;

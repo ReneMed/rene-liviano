@@ -9,6 +9,12 @@ test("normalizeVisitDetail completa extractedActions faltante", () => {
     soap: null,
     transcript: null,
     patientSummary: null,
+    extractedActions: {
+      medications: [],
+      studies: [],
+      documents: [],
+      followups: [],
+    },
   });
 
   assert.deepEqual(normalized.extractedActions, {
@@ -17,6 +23,7 @@ test("normalizeVisitDetail completa extractedActions faltante", () => {
     documents: [],
     followups: [],
   });
+  assert.deepEqual(normalized.analysisReadings, []);
 });
 
 test("normalizeVisitDetail sanea estructuras inválidas sin romper contrato", () => {
@@ -28,7 +35,10 @@ test("normalizeVisitDetail sanea estructuras inválidas sin romper contrato", ()
     patientSummary: null,
     extractedActions: {
       medications: [{ drug: " Paracetamol ", dose: "500mg", frequency: "c/8h", route: "VO", duration: "3 días" }],
-      studies: [{ type: "invalid", description: "x" }] as Array<{ type: "lab" | "imaging" | "referral"; description: string }>,
+      studies: [{ type: "invalid", description: "x" }] as unknown as Array<{
+        type: "lab" | "imaging" | "referral";
+        description: string;
+      }>,
       documents: [{ type: "report", title: " Informe ", rationale: "  detalle " }],
       followups: ["", " control "],
     },
@@ -38,4 +48,5 @@ test("normalizeVisitDetail sanea estructuras inválidas sin romper contrato", ()
   assert.equal(normalized.extractedActions.studies.length, 0);
   assert.equal(normalized.extractedActions.documents[0].title, "Informe");
   assert.deepEqual(normalized.extractedActions.followups, ["control"]);
+  assert.deepEqual(normalized.analysisReadings, []);
 });

@@ -40,7 +40,7 @@ import {
 
 async function generateSoapDeterministic(
   segments: TranscriptSegment[],
-  saveTranscriptPromise: Promise<void>,
+  saveTranscriptPromise: Promise<unknown>,
   onBlockGenerated: (block: keyof SOAPNote, soap: SOAPNote) => Promise<void>
 ): Promise<SOAPNote> {
   const soap: SOAPNote = {
@@ -73,7 +73,8 @@ export async function processMedicalVisit(
   audioBuffer: Buffer,
   professional: { id: string; name?: string; email?: string },
   patientId: string,
-  onProgress?: (event: ProcessProgressEvent) => void
+  onProgress?: (event: ProcessProgressEvent) => void,
+  options?: { existingVisitId?: string }
 ): Promise<ProcessVisitResponse> {
   const agentConfig = getAgentConfig();
   const patientRepo = createPatientRepository();
@@ -87,9 +88,26 @@ export async function processMedicalVisit(
   const justificationRepo = createJustificationRepository();
   const agentDecisionRepo = createAgentDecisionRepository();
 
-  const visit = await traceStage("create_visit", undefined, () =>
-    visitRepo.create({ patientId, professionalId: professional.id })
-  );
+  const visit = await traceStage("resolve_visit", undefined, async () => {
+    if (options?.existingVisitId) {
+      const existing = await visitRepo.findById(options.existingVisitId);
+      if (!existing) {
+        throw new Error("Visita no encontrada");
+      }
+      if (existing.patientId !== patientId) {
+        throw new Error("La visita no corresponde al paciente seleccionado");
+      }
+      if (existing.professionalId !== professional.id) {
+        throw new Error("Visita no autorizada");
+      }
+      const existingTranscript = await transcriptRepo.findByVisitId(existing.id);
+      if (existingTranscript) {
+        throw new Error("Esta visita ya tiene una transcripción registrada");
+      }
+      return existing;
+    }
+    return visitRepo.create({ patientId, professionalId: professional.id });
+  });
   onProgress?.({ stage: "visit_created", visitId: visit.id });
 
   onProgress?.({ stage: "transcribing", visitId: visit.id });
@@ -108,12 +126,12 @@ export async function processMedicalVisit(
     "plan",
   ];
 
-  const saveTranscriptPromise = traceStage("save_transcript", visit.id, () =>
-    transcriptRepo.create({
+  const saveTranscriptPromise: Promise<unknown> = traceStage("save_transcript", visit.id, async () => {
+    await transcriptRepo.create({
       visitId: visit.id,
       segments,
-    })
-  );
+    });
+  });
 
   const unusableTranscript = !hasUsableClinicalTranscript(segments);
 

@@ -10,6 +10,7 @@ export function createVisitRepository(): IVisitRepository {
       return {
         id: visit.id,
         patientId: visit.patientId,
+        professionalId: visit.professionalId,
         signedAt: visit.signedAt ?? undefined,
       };
     },
@@ -19,6 +20,7 @@ export function createVisitRepository(): IVisitRepository {
       return {
         id: visit.id,
         patientId: visit.patientId,
+        professionalId: visit.professionalId,
         signedAt: visit.signedAt ?? undefined,
       };
     },
@@ -30,6 +32,7 @@ export function createVisitRepository(): IVisitRepository {
       return visits.map((v) => ({
         id: v.id,
         patientId: v.patientId,
+        professionalId: v.professionalId,
         signedAt: v.signedAt ?? undefined,
       }));
     },

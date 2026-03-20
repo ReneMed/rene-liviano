@@ -31,12 +31,34 @@ export function postProcessMedications(items: ExtractedMedication[]): ExtractedM
 }
 
 export function postProcessStudies(items: ExtractedStudy[]): ExtractedStudy[] {
+  const classifyType = (description: string, currentType: ExtractedStudy["type"]): ExtractedStudy["type"] => {
+    const text = description.toLowerCase();
+    if (
+      /(interconsulta|derivaci[oó]n|especialista|cardiolog[ií]a|neurolog[ií]a|traumatolog[ií]a|dermatolog[ií]a)/i.test(
+        text
+      )
+    ) {
+      return "referral";
+    }
+    if (
+      /(radiograf[ií]a|ecograf[ií]a|tomograf[ií]a|resonancia|rmn|tac|mamograf[ií]a|doppler|imagen)/i.test(
+        text
+      )
+    ) {
+      return "imaging";
+    }
+    if (/(laboratorio|hemograma|glucemia|perfil|urea|creatinina|orina|cultivo|an[aá]lisis)/i.test(text)) {
+      return "lab";
+    }
+    return currentType;
+  };
+
   const unique = new Set<string>();
   const out: ExtractedStudy[] = [];
   for (const item of items) {
     if (!isNonEmpty(item.description)) continue;
     const normalized: ExtractedStudy = {
-      type: item.type,
+      type: classifyType(item.description.trim(), item.type),
       description: item.description.trim(),
     };
     const key = normalizeKey(`${normalized.type}|${normalized.description}`);

@@ -6,6 +6,7 @@ import {
   shouldRunStudiesAgent,
   shouldRunDocumentsAgent,
   shouldRunFollowupsAgent,
+  evaluateStudiesAgentRule,
   evaluateDocumentsAgentRule,
   evaluateFollowupsAgentRule,
 } from "./actionAgentRules";
@@ -96,6 +97,7 @@ test("shouldRunStudiesAgent detecta lenguaje de órdenes/estudios", () => {
   assert.equal(
     shouldRunStudiesAgent(segments("Solicito laboratorio con hemograma y perfil lipídico."), {
       ...baseSoap,
+      objective: "Solicitar laboratorio con hemograma y perfil lipidico para control evolutivo.",
     }),
     true
   );
@@ -113,6 +115,24 @@ test("shouldRunStudiesAgent respeta negación de estudios", () => {
     ),
     false
   );
+});
+
+test("evaluateStudiesAgentRule bloquea por baja confianza", () => {
+  const decision = evaluateStudiesAgentRule(
+    lowConfidenceSegments("Solicitar laboratorio completo."),
+    { ...baseSoap, objective: "Solicitar laboratorio completo y control evolutivo." }
+  );
+  assert.equal(decision.activated, false);
+  assert.match(decision.reason, /baja confianza/i);
+});
+
+test("evaluateStudiesAgentRule bloquea por contexto SOAP insuficiente", () => {
+  const decision = evaluateStudiesAgentRule(
+    segments("Solicitar laboratorio."),
+    { ...baseSoap, objective: "Laboratorio", plan: "" }
+  );
+  assert.equal(decision.activated, false);
+  assert.match(decision.reason, /contexto SOAP insuficiente/i);
 });
 
 test("shouldRunDocumentsAgent detecta lenguaje documental", () => {

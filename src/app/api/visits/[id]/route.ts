@@ -25,6 +25,7 @@ export async function GET(
         referral: true,
         justification: true,
         agentDecisions: { orderBy: { createdAt: "asc" } },
+        complementaryAnalysisReadings: { orderBy: { createdAt: "asc" } },
       },
     });
 
@@ -71,6 +72,12 @@ export async function GET(
         followups: [],
       },
       patientSummary: visit.patientSummary?.text ?? null,
+      analysisReadings: visit.complementaryAnalysisReadings.map((r) => ({
+        id: r.id,
+        createdAt: r.createdAt.toISOString(),
+        title: r.title ?? undefined,
+        content: r.content,
+      })),
       agentAudit: visit.agentDecisions.map((d) => ({
         agentKey: d.agentKey,
         activated: d.activated,

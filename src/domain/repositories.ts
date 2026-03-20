@@ -17,6 +17,7 @@ export interface PatientEntity {
 export interface VisitEntity {
   id: string;
   patientId: string;
+  professionalId: string;
   signedAt?: Date;
 }
 

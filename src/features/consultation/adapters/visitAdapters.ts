@@ -3,11 +3,17 @@ import { sanitizeExtractedActions, type ExtractedActions, type VisitDetail } fro
 interface VisitDetailLike extends Omit<VisitDetail, "extractedActions"> {
   extractedActions?: Partial<ExtractedActions>;
   agentAudit?: Array<{
-    agentKey: "soap" | "medication" | "studies" | "documents" | "followups";
+    agentKey:
+      | "soap"
+      | "medication"
+      | "studies"
+      | "documents"
+      | "followups"
+      | "complementary_studies_analysis";
     activated: boolean;
     reason: string;
     matchedPattern?: string;
-    source: "transcript_soap";
+    source: "transcript_soap" | "uploaded_materials";
   }>;
 }
 
@@ -24,5 +30,6 @@ export function normalizeVisitDetail<T extends VisitDetailLike>(visit: T): T {
     ...visit,
     extractedActions: normalizeExtractedActions(visit.extractedActions),
     agentAudit: visit.agentAudit ?? [],
+    analysisReadings: Array.isArray(visit.analysisReadings) ? visit.analysisReadings : [],
   };
 }

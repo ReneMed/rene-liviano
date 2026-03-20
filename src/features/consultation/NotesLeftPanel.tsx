@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComplementaryAnalysisReadingEntry } from "@shared-types";
 import { SOAPEditor } from "./SOAPEditor";
 import { LinkedEvidenceContent } from "@/features/linked-evidence/LinkedEvidenceContent";
 import { useNotesLeftPanel } from "./hooks/useNotesLeftPanel";
@@ -27,6 +28,8 @@ interface NotesLeftPanelProps {
     type: string;
     description: string;
   }>;
+  /** Textos detallados desde el modal de estudios complementarios (IA). */
+  analysisReadings?: ComplementaryAnalysisReadingEntry[];
   /** Procesamiento en curso (esqueleto / hints en el editor SOAP). */
   isProcessing?: boolean;
   processingStage?: "idle" | "uploading" | "transcribing" | "generating" | "finalizing" | "error";
@@ -45,6 +48,7 @@ export function NotesLeftPanel({
   onSave,
   transcript,
   extractedStudies = [],
+  analysisReadings = [],
   isProcessing = false,
   processingStage = "idle",
 }: NotesLeftPanelProps) {
@@ -55,8 +59,10 @@ export function NotesLeftPanel({
     hasTranscript,
     canShowEvidence,
     hasMedicalOrders,
+    hasAnalysisReadings,
+    hasLecturaContent,
     studiesWithTypeLabel,
-  } = useNotesLeftPanel({ soap, transcript, extractedStudies });
+  } = useNotesLeftPanel({ soap, transcript, extractedStudies, analysisReadings });
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-white border border-rene-aquaDark/40 rounded-lg overflow-hidden">
@@ -117,28 +123,67 @@ export function NotesLeftPanel({
           </div>
         )}
         {activeTab === "lectura_estudios" && (
-          <div className="h-full overflow-auto p-4 bg-rene-aqua/30">
-            {hasMedicalOrders ? (
-              <div className="space-y-3">
-                {studiesWithTypeLabel.map((order) => {
-                  return (
+          <div className="h-full overflow-auto p-4 bg-rene-aqua/30 space-y-6">
+            {hasAnalysisReadings && (
+              <section>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-rene-greenDark mb-2">
+                  Análisis incorporados
+                </h3>
+                <div className="space-y-4">
+                  {analysisReadings.map((r) => (
                     <article
-                      key={order.key}
-                      className="rounded-lg border border-rene-aquaDark/40 bg-white p-3"
+                      key={r.id}
+                      className="rounded-lg border border-rene-aquaDark/40 bg-white p-3 shadow-sm"
                     >
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        {order.typeLabel}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-800 whitespace-pre-wrap">
-                        {order.description}
-                      </p>
+                      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 pb-2 mb-2">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {r.title?.trim() || "Análisis complementario"}
+                        </p>
+                        <time
+                          className="text-[11px] text-gray-500 tabular-nums"
+                          dateTime={r.createdAt}
+                        >
+                          {new Date(r.createdAt).toLocaleString("es-AR")}
+                        </time>
+                      </div>
+                      <pre className="text-xs text-gray-800 whitespace-pre-wrap font-sans leading-relaxed">
+                        {r.content}
+                      </pre>
                     </article>
-                  );
-                })}
-              </div>
-            ) : (
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {hasMedicalOrders && (
+              <section>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-rene-greenDark mb-2">
+                  Órdenes / estudios detectados
+                </h3>
+                <div className="space-y-3">
+                  {studiesWithTypeLabel.map((order) => {
+                    return (
+                      <article
+                        key={order.key}
+                        className="rounded-lg border border-rene-aquaDark/40 bg-white p-3"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          {order.typeLabel}
+                        </p>
+                        <p className="mt-1 text-sm text-gray-800 whitespace-pre-wrap">
+                          {order.description}
+                        </p>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {!hasLecturaContent && (
               <p className="text-gray-500 text-sm">
-                No hay estudios u órdenes cargadas para esta consulta.
+                No hay lecturas de análisis ni órdenes cargadas para esta consulta. Podés incorporar un
+                análisis desde el grabador (estudios complementarios) con «Agregar a la consulta».
               </p>
             )}
           </div>

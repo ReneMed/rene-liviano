@@ -8,6 +8,8 @@ import { useVisitDetailLoader } from "@/features/consultation/hooks/useVisitDeta
 import { WaveformAnimation } from "./components/WaveformAnimation";
 import { useAudioLevelMeter } from "./hooks/useAudioLevelMeter";
 import { createPatientApi, fetchPatients } from "./services/patientsApi";
+import { createVisitSession } from "./services/visitsApi";
+import { ComplementaryStudiesFlow } from "./components/complementaryStudies/ComplementaryStudiesFlow";
 import { buildWhatsappInviteMessage, parseQrPatientData } from "./utils/patientUtils";
 import { createPatientSchema } from "@/shared/validation/patient";
 import type { AddPatientOption, CreatePatientInput, PatientFormFields, PatientModalView, PatientOption, RecordingState } from "./types";
@@ -66,6 +68,10 @@ export function RecorderScreen() {
   const [invitePhone, setInvitePhone] = useState("");
   const [qrRawValue, setQrRawValue] = useState("");
   const [qrStatus, setQrStatus] = useState<string | null>(null);
+  const [sessionVisitId, setSessionVisitId] = useState<string | null>(null);
+  const [sessionVisitLoading, setSessionVisitLoading] = useState(false);
+  const [sessionVisitError, setSessionVisitError] = useState<string | null>(null);
+  const [complementaryModalOpen, setComplementaryModalOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const qrScanIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const qrStreamRef = useRef<MediaStream | null>(null);
@@ -92,6 +98,49 @@ export function RecorderScreen() {
       setIsLoadingPatients(false);
     }
   }, []);
+
+  const retrySessionVisit = useCallback(async () => {
+    if (!selectedPatient?.id) return;
+    setSessionVisitLoading(true);
+    setSessionVisitError(null);
+    try {
+      const id = await createVisitSession(selectedPatient.id);
+      setSessionVisitId(id);
+    } catch (e) {
+      setSessionVisitId(null);
+      setSessionVisitError(e instanceof Error ? e.message : "No se pudo crear la visita");
+    } finally {
+      setSessionVisitLoading(false);
+    }
+  }, [selectedPatient?.id]);
+
+  useEffect(() => {
+    if (!selectedPatient?.id) {
+      setSessionVisitId(null);
+      setSessionVisitLoading(false);
+      setSessionVisitError(null);
+      return;
+    }
+    let cancelled = false;
+    setSessionVisitLoading(true);
+    setSessionVisitError(null);
+    void (async () => {
+      try {
+        const id = await createVisitSession(selectedPatient.id);
+        if (!cancelled) setSessionVisitId(id);
+      } catch (e) {
+        if (!cancelled) {
+          setSessionVisitId(null);
+          setSessionVisitError(e instanceof Error ? e.message : "No se pudo crear la visita");
+        }
+      } finally {
+        if (!cancelled) setSessionVisitLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPatient?.id]);
 
   const stopQrScanner = useCallback(() => {
     if (qrScanIntervalRef.current) {
@@ -129,6 +178,10 @@ export function RecorderScreen() {
         setIsPatientModalOpen(true);
         return;
       }
+      if (sessionVisitLoading || !sessionVisitId) {
+        setError("Esperá a que se cree la sesión de visita o reintentá con el botón de abajo.");
+        return;
+      }
       if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
         setError("Tu navegador no soporta grabación de audio. Probá con Chrome o Edge.");
         return;
@@ -149,7 +202,7 @@ export function RecorderScreen() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al acceder al micrófono");
     }
-  }, [selectedPatient, startAudioMeter, startTimer]);
+  }, [selectedPatient, sessionVisitId, sessionVisitLoading, startAudioMeter, startTimer]);
 
   const stopRecording = useCallback(async () => {
     const mr = mediaRecorderRef.current;
@@ -211,6 +264,9 @@ export function RecorderScreen() {
     formData.append("audio", blob, "recording.webm");
     if (selectedPatient?.id) {
       formData.append("patientId", selectedPatient.id);
+    }
+    if (sessionVisitId) {
+      formData.append("visitId", sessionVisitId);
     }
 
     const patientLabel = selectedPatient
@@ -446,7 +502,16 @@ export function RecorderScreen() {
       setError(err instanceof Error ? err.message : "Error al procesar");
       setState("idle");
     }
-  }, [selectedPatient, setProcessing, setSelectedVisit, stopAudioMeter, stopTimer, router, loadVisitDetail]);
+  }, [
+    selectedPatient,
+    sessionVisitId,
+    setProcessing,
+    setSelectedVisit,
+    stopAudioMeter,
+    stopTimer,
+    router,
+    loadVisitDetail,
+  ]);
 
   const createPatient = useCallback(async () => {
     const form: PatientFormFields = {
@@ -697,6 +762,40 @@ export function RecorderScreen() {
           />
         </div>
 
+        {sessionVisitLoading && (
+          <p className="text-xs text-teal-900 text-center w-full">Creando sesión de visita…</p>
+        )}
+        {sessionVisitError && (
+          <div className="w-full text-xs text-red-600 text-center flex flex-col gap-1 items-center">
+            <span>{sessionVisitError}</span>
+            <button
+              type="button"
+              onClick={() => void retrySessionVisit()}
+              className="text-teal-700 font-medium underline"
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
+        <button
+          type="button"
+          disabled={!selectedPatient || sessionVisitLoading || !sessionVisitId}
+          onClick={() => setComplementaryModalOpen(true)}
+          className="w-full rounded-xl border border-teal-500 bg-white/90 px-4 py-2.5 text-sm font-medium text-teal-800 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+        >
+          Analizar estudios complementarios
+        </button>
+        <ComplementaryStudiesFlow
+          open={complementaryModalOpen}
+          onClose={() => setComplementaryModalOpen(false)}
+          visitId={sessionVisitId}
+          visitLoading={sessionVisitLoading}
+          patient={selectedPatient}
+          onAddedToConsultation={() => {
+            if (sessionVisitId) void loadVisitDetail(sessionVisitId);
+          }}
+        />
+
         <div className="w-full aspect-video max-h-32 bg-rene-aquaDark/50 rounded-xl flex items-center justify-center overflow-hidden">
           {state === "recording" && (
             <WaveformAnimation level={audioLevel} isActive={hasAudioSignal} />
@@ -721,7 +820,13 @@ export function RecorderScreen() {
         <button
           type="button"
           onClick={state === "recording" ? stopRecording : startRecording}
-          disabled={state === "processing" || !selectedPatient}
+          disabled={
+            state === "processing" ||
+            !selectedPatient ||
+            sessionVisitLoading ||
+            !sessionVisitId ||
+            !!sessionVisitError
+          }
           style={{
             width: "6rem",
             height: "6rem",
@@ -732,13 +837,33 @@ export function RecorderScreen() {
             color: "white",
             fontWeight: 500,
             border: "none",
-            cursor: state === "processing" || !selectedPatient ? "not-allowed" : "pointer",
-            backgroundColor: state === "recording" ? "#0f766e" : state === "processing" || !selectedPatient ? "#7bcfc5" : "#2dd4bf",
+            cursor:
+              state === "processing" ||
+              !selectedPatient ||
+              sessionVisitLoading ||
+              !sessionVisitId ||
+              sessionVisitError
+                ? "not-allowed"
+                : "pointer",
+            backgroundColor:
+              state === "recording"
+                ? "#0f766e"
+                : state === "processing" ||
+                    !selectedPatient ||
+                    sessionVisitLoading ||
+                    !sessionVisitId ||
+                    sessionVisitError
+                  ? "#7bcfc5"
+                  : "#2dd4bf",
           }}
           className={`shadow-lg transition touch-manipulation ${
             state === "recording"
               ? "bg-rene-greenDark hover:bg-rene-greenDark"
-              : state === "processing" || !selectedPatient
+              : state === "processing" ||
+                  !selectedPatient ||
+                  sessionVisitLoading ||
+                  !sessionVisitId ||
+                  sessionVisitError
                 ? "bg-rene-aquaDark cursor-not-allowed"
                 : "bg-rene-green hover:bg-rene-greenDark"
           }`}
@@ -753,7 +878,16 @@ export function RecorderScreen() {
         </button>
 
         <p className="text-sm text-gray-600 text-center min-h-[1.25rem]" style={{ fontSize: "0.875rem", color: "#4b5563", margin: 0 }}>
-          {state === "idle" && (selectedPatient ? "Tocá para grabar" : "Seleccioná paciente para grabar")}
+          {state === "idle" &&
+            (selectedPatient
+              ? sessionVisitLoading
+                ? "Preparando sesión de visita…"
+                : sessionVisitError
+                  ? "Reintentá la sesión de visita para grabar"
+                  : !sessionVisitId
+                    ? "Preparando sesión…"
+                    : "Tocá para grabar"
+              : "Seleccioná paciente para grabar")}
           {state === "recording" && "Tocá para detener"}
           {state === "processing" && processing.active && (
             <span className="font-medium text-gray-700">{getRecorderFooterStatus(processing)}</span>

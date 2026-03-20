@@ -226,6 +226,7 @@ export function VisitDetail({ visit, initialActionsTab }: VisitDetailProps) {
                 onSave={handleSave}
                 transcript={visit.transcript}
                 extractedStudies={visit.extractedActions.studies}
+                analysisReadings={visit.analysisReadings ?? []}
                 isProcessing={processing.active}
                 processingStage={processing.stage}
               />
